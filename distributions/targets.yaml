@@ -1,4 +1,7 @@
 ---
 targets:
-  - yq:
-      version: 4.40.5
+  - name: yq
+    version: 4.40.5
+    archs:
+      - amd64
+      - arm64

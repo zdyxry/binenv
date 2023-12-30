@@ -32,6 +32,18 @@ import (
 	"github.com/devops-works/binenv/internal/mapping"
 )
 
+// Config download config
+type Config struct {
+	Targets []Target `yaml:"targets"`
+}
+
+// Target is the Download target
+type Target struct {
+	Name    string   `yaml:"name"`
+	Version string   `yaml:"version"`
+	Archs   []string `yaml:"archs"`
+}
+
 // Where to fetch distribution list and cached version
 // Distributions are fetched from master
 // Cache is fetched from develop
@@ -340,6 +352,18 @@ func (a *App) Install(specs ...string) error {
 	return nil
 }
 
+// DownloadWithConfig downloads binaries only
+func (a *App) DownloadWithConfig(config *Config) {
+	const targetOS = "linux"
+	for _, target := range config.Targets {
+		for _, arch := range target.Archs {
+			if err := a.Download(targetOS, arch, target.Name, target.Version); err != nil {
+				a.logger.Error().Msg(fmt.Sprintf("Failed to download %s with err: %s", target.Name, err))
+			}
+		}
+	}
+}
+
 // Download binary only
 func (a *App) Download(targetOS string, targetArch string, specs ...string) error {
 	if len(specs)%2 != 0 && len(specs) != 1 {
@@ -405,29 +429,6 @@ func (a *App) download(dist, version string, targetArch, targetOS string) (strin
 		return "", nil
 	}
 
-	versions := a.GetInstalledVersionsFor(dist)
-
-	// If version is not specified, install most recent
-	if version == "" {
-		version = a.GetMostRecent(dist)
-		a.logger.Warn().Msgf("version for %q not specified; using %q", dist, version)
-	}
-
-	if version == "" {
-		return "", fmt.Errorf("unable to select latest stable version for %q: no stable version available. May be run 'binenv update %s' ?", dist, dist)
-	}
-
-	// If version is specified, check if it exists, return if yes
-	cleanVersion, err := gov.NewSemver(version)
-	if err != nil {
-		return "", err
-	}
-	version = cleanVersion.String()
-	if stringInSlice(version, versions) {
-		a.logger.Warn().Msgf("version %q already installed for %q", version, dist)
-		return version, ErrAlreadyInstalled
-	}
-
 	var m mapping.Mapper
 	{
 		if v, ok := a.mappers[dist]; ok {
@@ -443,12 +444,13 @@ func (a *App) download(dist, version string, targetArch, targetOS string) (strin
 	}
 
 	// Create destination directory
-	if _, err := os.Stat(a.getBinDirFor(dist)); os.IsNotExist(err) {
+	targetPath := filepath.Join(a.getBinDirFor(dist), targetArch)
+	if _, err := os.Stat(targetPath); os.IsNotExist(err) {
 		var mode os.FileMode = 0750
 		if a.global {
 			mode = 0755
 		}
-		err := os.MkdirAll(a.getBinDirFor(dist), mode)
+		err := os.MkdirAll(targetPath, mode)
 		if err != nil {
 			return version, err
 		}
@@ -462,6 +464,7 @@ func (a *App) download(dist, version string, targetArch, targetOS string) (strin
 		file,
 		filepath.Join(
 			a.getBinDirFor(dist),
+			targetArch,
 			gov.Must(gov.NewVersion(version)).String(),
 		),
 		version,
