@@ -465,7 +465,8 @@ func (a *App) download(dist, version string, targetArch, targetOS string) (strin
 		filepath.Join(
 			a.getBinDirFor(dist),
 			targetArch,
-			gov.Must(gov.NewVersion(version)).String(),
+			// gov.Must(gov.NewVersion(version)).String(),
+			dist,
 		),
 		version,
 		targetArch,
