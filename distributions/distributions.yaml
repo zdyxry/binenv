@@ -1766,6 +1766,25 @@ sources:
       binaries:
         - "infracost-{{ .OS }}-{{ .Arch }}"
 
+  jaq:
+    description: A jq clone focussed on correctness, speed, and simplicity
+    url: https://github.com/01mf02/jaq
+    map:
+      amd64: x86_64
+      arm64: aarch64
+      darwin: apple-darwin
+      linux: unknown-linux-musl
+      windows: pc-windows-msvc
+    list:
+      type: github-releases
+      url: https://api.github.com/repos/01mf02/jaq/releases
+    fetch:
+      url: https://github.com/01mf02/jaq/releases/download/v1.2.0/jaq-v{{ .Version }}-{{ .Arch }}-{{ .OS }}
+    install:
+      type: direct
+      binaries:
+        - jaq
+
   jless:
     description: A command-line pager for JSON data.
     url: https://github.com/PaulJuliusMartinez/jless
@@ -2061,7 +2080,7 @@ sources:
 
   kube-linter:
     description: >
-      KubeLinter is a static analysis tool that checks Kubernetes YAML files and Helm charts to ensure 
+      KubeLinter is a static analysis tool that checks Kubernetes YAML files and Helm charts to ensure
       the applications represented in them adhere to best practices.
     url: https://github.com/stackrox/kube-linter
     list:
@@ -3366,7 +3385,7 @@ sources:
 
   # Removed because status is unclear:
   # repo is redirected to https://github.com/jumppad-labs/jumppad
-  # 
+  #
   # shipyard:
   #   description: Modern cloud native development environments
   #   url: https://shipyard.run/
@@ -3441,7 +3460,7 @@ sources:
 
   slowql-digest:
     description: >
-      A package to parse slow query logs in Go, with associated tooling 
+      A package to parse slow query logs in Go, with associated tooling
       (digester, replayer...), and compatible with multiple databases (MySQL,
       MariaDB, PerconaDB...).
     url: https://github.com/devops-works/slowql/
@@ -3468,7 +3487,7 @@ sources:
 
   slowql-replayer:
     description: >
-      A package to parse slow query logs in Go, with associated tooling 
+      A package to parse slow query logs in Go, with associated tooling
       (digester, replayer...), and compatible with multiple databases (MySQL,
       MariaDB, PerconaDB...).
     url: https://github.com/devops-works/slowql/

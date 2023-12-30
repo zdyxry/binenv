@@ -33,7 +33,7 @@ func RootCmd() *cobra.Command {
 		Short: "Install binary distributions easily",
 		Long: `binenv lets you install binary-distributed applications
 (e.g. terraform, kubectl, ...) easily and switch between any version.
-		
+
 If your directory has a '.binenv.lock', proper versions will always be
 selected.
 
@@ -155,6 +155,7 @@ This is version ` + Version + ` built on ` + BuildDate + `.`,
 		versionCmd(),
 		versionsCmd(a),
 		upgradeCmd(a),
+		downloadCmd(a),
 	)
 
 	return rootCmd

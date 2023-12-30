@@ -3,3 +3,4 @@ binenv
 *.json
 /bin
 /dist
+/binaries/

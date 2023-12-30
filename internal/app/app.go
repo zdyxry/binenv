@@ -340,6 +340,140 @@ func (a *App) Install(specs ...string) error {
 	return nil
 }
 
+// Download binary only
+func (a *App) Download(targetOS string, targetArch string, specs ...string) error {
+	if len(specs)%2 != 0 && len(specs) != 1 {
+		a.logger.Error().Msg("invalid number of arguments (must have distribution and version pairs")
+		os.Exit(1)
+	}
+	a.logger.Info().Msgf("target OS: %s, target Arch: %s", targetOS, targetArch)
+	errored := false
+
+	for i := 0; i < len(specs); i += 2 {
+		dist := specs[i]
+		version := ""
+		if len(specs) > 1 {
+			version = specs[i+1]
+		}
+
+		supportedPlatforms := a.def.Sources[dist].SupportedPlatforms
+		if len(supportedPlatforms) > 0 {
+			isSupported := false
+			for _, platform := range supportedPlatforms {
+				if platform.OS == targetOS && platform.Arch == targetArch {
+					isSupported = true
+					break
+				}
+			}
+			if !isSupported {
+				a.logger.Error().Msgf("%q is not available for %s/%s", dist, runtime.GOOS, runtime.GOARCH)
+				errored = true
+				continue
+			}
+		}
+
+		v, err := a.download(dist, version)
+		if err != nil && !errors.Is(err, ErrAlreadyInstalled) {
+			a.logger.Error().Err(err).Msgf("unable to install %q (%s)", dist, v)
+			errored = true
+			continue
+		}
+		if err == nil {
+			a.logger.Info().Msgf("%q (%s) installed", dist, v)
+		}
+
+		postInstallMessage := strings.TrimSpace(a.def.Sources[dist].PostInstallMessage)
+		if len(postInstallMessage) > 0 {
+			fmt.Printf("===> Post download message for %s <===\n%s\n", aurora.Bold(dist), postInstallMessage)
+		}
+	}
+
+	if errored {
+		os.Exit(1)
+	}
+
+	return nil
+}
+
+func (a *App) download(dist, version string) (string, error) {
+	// Check if distribution is managed by us
+	if a.fetchers[dist] == nil {
+		return "", fmt.Errorf("no fetcher found for %q", dist)
+	}
+	if _, ok := a.fetchers[dist]; !ok {
+		a.logger.Error().Msgf("no such distribution %q", dist)
+		return "", nil
+	}
+
+	versions := a.GetInstalledVersionsFor(dist)
+
+	// If version is not specified, install most recent
+	if version == "" {
+		version = a.GetMostRecent(dist)
+		a.logger.Warn().Msgf("version for %q not specified; using %q", dist, version)
+	}
+
+	if version == "" {
+		return "", fmt.Errorf("unable to select latest stable version for %q: no stable version available. May be run 'binenv update %s' ?", dist, dist)
+	}
+
+	// If version is specified, check if it exists, return if yes
+	cleanVersion, err := gov.NewSemver(version)
+	if err != nil {
+		return "", err
+	}
+	version = cleanVersion.String()
+	if stringInSlice(version, versions) {
+		a.logger.Warn().Msgf("version %q already installed for %q", version, dist)
+		return version, ErrAlreadyInstalled
+	}
+
+	var m mapping.Mapper
+	{
+		if v, ok := a.mappers[dist]; ok {
+			m = v
+		}
+	}
+
+	ctx := a.logger.WithContext(context.TODO())
+	// Call fetcher for distribution
+	file, err := a.fetchers[dist].Fetch(ctx, dist, version, m)
+	if err != nil {
+		return version, err
+	}
+
+	// Create destination directory
+	if _, err := os.Stat(a.getBinDirFor(dist)); os.IsNotExist(err) {
+		var mode os.FileMode = 0750
+		if a.global {
+			mode = 0755
+		}
+		err := os.MkdirAll(a.getBinDirFor(dist), mode)
+		if err != nil {
+			return version, err
+		}
+	}
+
+	if a.installers[dist] == nil {
+		return version, fmt.Errorf("no installer found for %s", dist)
+	}
+
+	err = a.installers[dist].Install(
+		file,
+		filepath.Join(
+			a.getBinDirFor(dist),
+			gov.Must(gov.NewVersion(version)).String(),
+		),
+		version,
+		m,
+	)
+	if err != nil {
+		return version, err
+	}
+
+	return version, nil
+}
+
 func (a *App) install(dist, version string) (string, error) {
 	// Check if distribution is managed by us
 	if a.fetchers[dist] == nil {

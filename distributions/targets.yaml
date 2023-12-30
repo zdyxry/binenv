@@ -1,0 +1,6 @@
+---
+targets:
+  jaq:
+  - linux:
+    - amd64
+    - arm64
