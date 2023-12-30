@@ -7,6 +7,6 @@ type Direct struct {
 }
 
 // Install will move the binary from src to dst
-func (d Direct) Install(src, dst, version string, mapper mapping.Mapper) error {
+func (d Direct) Install(src, dst, version string, arch, os string, mapper mapping.Mapper) error {
 	return installFile(src, dst)
 }

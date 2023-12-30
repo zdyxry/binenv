@@ -18,7 +18,7 @@ type Tbz struct {
 }
 
 // Install file from bzip2 file
-func (x Tbz) Install(src, dst, version string, mapper mapping.Mapper) error {
+func (x Tbz) Install(src, dst, version string, targetArch, targetOS string, mapper mapping.Mapper) error {
 	noMatches := ErrNoMatch
 
 	data, err := os.ReadFile(src)
@@ -29,7 +29,7 @@ func (x Tbz) Install(src, dst, version string, mapper mapping.Mapper) error {
 	r := bzip2.NewReader(bytes.NewReader(data))
 
 	tarReader := tar.NewReader(r)
-	args := tpl.New(version, mapper)
+	args := tpl.New(version, targetArch, targetOS, mapper)
 
 	for {
 		header, err := tarReader.Next()

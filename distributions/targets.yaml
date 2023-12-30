@@ -1,6 +1,4 @@
 ---
 targets:
-  jaq:
-  - linux:
-    - amd64
-    - arm64
+  - yq:
+      version: 4.40.5

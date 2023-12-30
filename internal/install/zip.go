@@ -15,7 +15,7 @@ type Zip struct {
 }
 
 // Install files from zip file
-func (z Zip) Install(src, dst, version string, mapper mapping.Mapper) error {
+func (z Zip) Install(src, dst, version string, targetArch, targetOS string, mapper mapping.Mapper) error {
 	// var filenames []string
 	noMatches := ErrNoMatch
 
@@ -25,7 +25,7 @@ func (z Zip) Install(src, dst, version string, mapper mapping.Mapper) error {
 	}
 	defer r.Close()
 
-	args := tpl.New(version, mapper)
+	args := tpl.New(version, targetArch, targetOS, mapper)
 	for _, f := range r.File {
 		ok, err := args.MatchFilters(f.Name, z.filters)
 		if err != nil {

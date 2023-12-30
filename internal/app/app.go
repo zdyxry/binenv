@@ -372,7 +372,7 @@ func (a *App) Download(targetOS string, targetArch string, specs ...string) erro
 			}
 		}
 
-		v, err := a.download(dist, version)
+		v, err := a.download(dist, version, targetArch, targetOS)
 		if err != nil && !errors.Is(err, ErrAlreadyInstalled) {
 			a.logger.Error().Err(err).Msgf("unable to install %q (%s)", dist, v)
 			errored = true
@@ -395,7 +395,7 @@ func (a *App) Download(targetOS string, targetArch string, specs ...string) erro
 	return nil
 }
 
-func (a *App) download(dist, version string) (string, error) {
+func (a *App) download(dist, version string, targetArch, targetOS string) (string, error) {
 	// Check if distribution is managed by us
 	if a.fetchers[dist] == nil {
 		return "", fmt.Errorf("no fetcher found for %q", dist)
@@ -437,7 +437,7 @@ func (a *App) download(dist, version string) (string, error) {
 
 	ctx := a.logger.WithContext(context.TODO())
 	// Call fetcher for distribution
-	file, err := a.fetchers[dist].Fetch(ctx, dist, version, m)
+	file, err := a.fetchers[dist].Fetch(ctx, dist, version, targetArch, targetOS, m)
 	if err != nil {
 		return version, err
 	}
@@ -465,6 +465,8 @@ func (a *App) download(dist, version string) (string, error) {
 			gov.Must(gov.NewVersion(version)).String(),
 		),
 		version,
+		targetArch,
+		targetOS,
 		m,
 	)
 	if err != nil {
@@ -475,6 +477,8 @@ func (a *App) download(dist, version string) (string, error) {
 }
 
 func (a *App) install(dist, version string) (string, error) {
+	targetArch := runtime.GOARCH
+	targetOS := runtime.GOOS
 	// Check if distribution is managed by us
 	if a.fetchers[dist] == nil {
 		return "", fmt.Errorf("no fetcher found for %q", dist)
@@ -521,7 +525,7 @@ func (a *App) install(dist, version string) (string, error) {
 	}
 
 	// Call fetcher for distribution
-	file, err := a.fetchers[dist].Fetch(ctx, dist, version, m)
+	file, err := a.fetchers[dist].Fetch(ctx, dist, version, targetArch, targetOS, m)
 	if err != nil {
 		return version, err
 	}
@@ -553,6 +557,8 @@ func (a *App) install(dist, version string) (string, error) {
 			gov.Must(gov.NewVersion(version)).String(),
 		),
 		version,
+		targetArch,
+		targetOS,
 		m,
 	)
 	if err != nil {

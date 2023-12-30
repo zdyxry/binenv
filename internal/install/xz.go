@@ -16,7 +16,7 @@ type XZ struct {
 }
 
 // Install file from xz file
-func (x XZ) Install(src, dst, version string, mapper mapping.Mapper) error {
+func (x XZ) Install(src, dst, version string, targetArch, targetOS string, mapper mapping.Mapper) error {
 	data, err := os.ReadFile(src)
 	if err != nil {
 		log.Fatal(err)

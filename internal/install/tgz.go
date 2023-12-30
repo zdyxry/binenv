@@ -17,7 +17,7 @@ type Tgz struct {
 }
 
 // Install files from tgz file
-func (t Tgz) Install(src, dst, version string, mapper mapping.Mapper) error {
+func (t Tgz) Install(src, dst, version string, targetArch, targetOS string, mapper mapping.Mapper) error {
 	noMatches := ErrNoMatch
 
 	f, err := os.Open(src)
@@ -32,7 +32,7 @@ func (t Tgz) Install(src, dst, version string, mapper mapping.Mapper) error {
 	}
 
 	tarReader := tar.NewReader(gzf)
-	args := tpl.New(version, mapper)
+	args := tpl.New(version, targetArch, targetOS, mapper)
 
 	for {
 		header, err := tarReader.Next()

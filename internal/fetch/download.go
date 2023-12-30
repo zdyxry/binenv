@@ -17,14 +17,16 @@ import (
 
 // Download handles direct binary releases
 type Download struct {
-	url string
+	url  string
+	os   string
+	arch string
 }
 
 // Fetch gets the package and returns location of downloaded file
-func (d Download) Fetch(ctx context.Context, dist, v string, mapper mapping.Mapper) (string, error) {
+func (d Download) Fetch(ctx context.Context, dist, v string, arch, os string, mapper mapping.Mapper) (string, error) {
 	logger := zerolog.Ctx(ctx).With().Str("func", "GithubRelease.Get").Logger()
 
-	args := tpl.New(v, mapper)
+	args := tpl.New(v, arch, os, mapper)
 
 	url, err := args.Render(d.url)
 	if err != nil {

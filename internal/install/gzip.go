@@ -13,7 +13,7 @@ type GZip struct {
 }
 
 // Install files from gzip file
-func (z GZip) Install(src, dst, version string, mapper mapping.Mapper) error {
+func (z GZip) Install(src, dst, version string, targetArch, targetOS string, mapper mapping.Mapper) error {
 	fs, err := os.Open(src)
 	if err != nil {
 		return err

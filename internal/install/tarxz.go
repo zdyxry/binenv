@@ -19,7 +19,7 @@ type TarXZ struct {
 }
 
 // Install file from xz file
-func (x TarXZ) Install(src, dst, version string, mapper mapping.Mapper) error {
+func (x TarXZ) Install(src, dst, version string, targetArch, targetOS string, mapper mapping.Mapper) error {
 	noMatches := ErrNoMatch
 
 	data, err := os.ReadFile(src)
@@ -33,7 +33,7 @@ func (x TarXZ) Install(src, dst, version string, mapper mapping.Mapper) error {
 	}
 
 	tarReader := tar.NewReader(r)
-	args := tpl.New(version, mapper)
+	args := tpl.New(version, targetArch, targetOS, mapper)
 
 	for {
 		header, err := tarReader.Next()

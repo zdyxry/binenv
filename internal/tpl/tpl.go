@@ -3,7 +3,6 @@ package tpl
 import (
 	"bytes"
 	"regexp"
-	"runtime"
 	"strings"
 	"sync"
 	"text/template"
@@ -25,13 +24,10 @@ type Args struct {
 }
 
 // New returns populated template Args
-func New(v string, mapper mapping.Mapper) Args {
-	rarch := runtime.GOARCH
-	ros := runtime.GOOS
-
+func New(v string, rarch string, ros string, mapper mapping.Mapper) Args {
 	if mapper != nil {
-		rarch = mapper.MustInterpolate(runtime.GOARCH)
-		ros = mapper.MustInterpolate(runtime.GOOS)
+		rarch = mapper.MustInterpolate(rarch)
+		ros = mapper.MustInterpolate(ros)
 		// fmt.Printf("remapping arch %s to %s\n", runtime.GOARCH, rarch)
 		// fmt.Printf("remapping os %s to %s\n", runtime.GOOS, ros)
 	}

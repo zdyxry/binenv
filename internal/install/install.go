@@ -19,7 +19,7 @@ type Install struct {
 
 // Installer should implement installation
 type Installer interface {
-	Install(src, dst, version string, mapper mapping.Mapper) error
+	Install(src, dst, version string, arch, os string, mapper mapping.Mapper) error
 }
 
 // Factory returns instances that comply to Installer interface
