@@ -4,3 +4,4 @@ binenv
 /bin
 /dist
 /binaries/
+*.rpm

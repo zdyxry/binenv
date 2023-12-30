@@ -1,0 +1,16 @@
+name: "tuna-utils"
+arch: ${ARCH}
+platform: "linux"
+version: "${VERSION}"
+release: "${RELEASE}"
+provides:
+- yq
+maintainer: "Dev <dev@smartx.com>"
+description: |
+  SmartX Tuna util binaries
+vendor: "SmartX"
+homepage: "https://smartx.com"
+contents:
+- src: '/tmp/binaries/yq/${ARCH}/yq'
+  dst: /usr/bin/yq
+  expand: true

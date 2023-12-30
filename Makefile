@@ -5,6 +5,9 @@ VERSION ?= $(shell git describe --tags --always --dirty --match=v* 2> /dev/null 
 PKGS     = $(or $(PKG),$(shell env GO111MODULE=on $(GO) list ./...))
 TESTPKGS = $(shell env GO111MODULE=on $(GO) list -f '{{ if or .TestGoFiles .XTestGoFiles }}{{ .ImportPath }}{{ end }}' $(PKGS))
 BIN      = $(CURDIR)/bin
+RPM_VERSION ?= $(shell env RPM_VERSION)
+RPM_RELEASE ?= $(shell env RPM_RELEASE)
+ARCH ?= $(shell env ARCH)
 
 GO      = go
 GODOC   = godoc
@@ -82,7 +85,7 @@ prepush: outdated ; $(info $(M) execute CI linters…) @ ## execute linting test
 	$Q docker run  -v $(pwd)/README.md:/tmp/README.md pipelinecomponents/markdownlint:latest mdl --style all -r ~MD034,~MD013 /tmp/README.md
 
 distributions: $(BIN) ; $(info $(M) creating DISTRIBUTIONS.md…) @ ## builds DISTRIBUTIONS.md file from distributions.yaml
-	$Q ./bin/binenv search -w | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g" | awk -F',' '{ print "- ["$$1"]("$$2"): "$$3","$$4","$$5","$$6","$$7","$$8}' | sed -e 's/,*$$//' | tr -d '"' > DISTRIBUTIONS.md 
+	$Q ./bin/binenv search -w | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g" | awk -F',' '{ print "- ["$$1"]("$$2"): "$$3","$$4","$$5","$$6","$$7","$$8}' | sed -e 's/,*$$//' | tr -d '"' > DISTRIBUTIONS.md
 
 validate: bin ; $(info $(M) validating cache against distributions…) @ ## validates cache against distributions
 	$Q ./scripts/validate.sh code
@@ -190,3 +193,15 @@ help:
 .PHONY: version
 version:
 	@echo $(VERSION)
+
+.PHONY: rpm
+rpm:
+	docker run --rm \
+	-v "$(PWD):/tmp/" \
+	-e "ARCH=$(ARCH)" \
+	-e "VERSION=$(RPM_VERSION)" \
+	-e "RELEASE=$(RPM_RELEASE)" \
+	goreleaser/nfpm package \
+		--config /tmp/nfpm.yaml \
+		-p rpm \
+		-t /tmp
